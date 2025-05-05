@@ -1,4 +1,4 @@
-#include "../includes/ft_ping.h"
+#include "ft_ping.h"
 
 /**
  * Initialize an ICMP echo request packet
@@ -11,7 +11,8 @@ void init_packet(void *packet, int size, int seq)
 {
     struct icmphdr *icmp;
     char *data;
-    int i;
+//    int i;
+    size_t data_size;
 
     /* Clear the packet buffer */
     memset(packet, 0, size);
@@ -23,9 +24,10 @@ void init_packet(void *packet, int size, int seq)
     icmp->un.echo.id = htons(getpid() & 0xFFFF); /* Use process ID as identifier */
     icmp->un.echo.sequence = htons(seq);
 
-    /* Fill the data section with a pattern */
+    /* Calculate data size and fill the data section with a pattern */
     data = (char *)packet + sizeof(struct icmphdr);
-    for (i = 0; i < size - sizeof(struct icmphdr); i++) {
+    data_size = size - sizeof(struct icmphdr);
+    for (size_t i = 0; i < data_size; i++) {
         data[i] = 'a' + (i % 26);
     }
 
@@ -104,7 +106,7 @@ int receive_packet(int sockfd, struct sockaddr_in *addr, void *buffer, int size,
     fd_set readfds;
     struct ip *ip;
     struct icmphdr *icmp;
-    uint16_t received_id, received_seq;
+    uint16_t received_id;
 
     /* Set up select for timeout */
     FD_ZERO(&readfds);
@@ -132,7 +134,7 @@ int receive_packet(int sockfd, struct sockaddr_in *addr, void *buffer, int size,
     hlen = ip->ip_hl << 2; /* IP header length in bytes */
 
     /* Check if we have a complete ICMP header */
-    if (ret < hlen + sizeof(struct icmphdr)) {
+    if ((size_t)ret < hlen + sizeof(struct icmphdr)) {
         return -1;
     }
 
@@ -145,9 +147,8 @@ int receive_packet(int sockfd, struct sockaddr_in *addr, void *buffer, int size,
         return -1;
     }
 
-    /* Extract ID and sequence number (in network byte order) */
+    /* Extract ID (in network byte order) */
     received_id = ntohs(icmp->un.echo.id);
-    received_seq = ntohs(icmp->un.echo.sequence);
 
     /* Validate that it's a response to our request (check PID) */
     if (received_id != (getpid() & 0xFFFF)) {

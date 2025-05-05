@@ -134,13 +134,6 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    /* Print verbose information if requested */
-    if (opts.verbose) {
-        print_verbose("PING %s (%s) %d(%d) bytes of data.",
-                      opts.hostname, opts.ipstr,
-                      PACKET_SIZE - sizeof(struct icmphdr), PACKET_SIZE);
-    }
-
     /* Start pinging */
     ret = start_ping(&opts);
 

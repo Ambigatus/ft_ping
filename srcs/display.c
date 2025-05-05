@@ -8,7 +8,7 @@
  */
 void print_ping_header(t_options *opts)
 {
-    printf("PING %s (%s) %d(%d) bytes of data.\n",
+    printf("PING %s (%s) %zu(%d) bytes of data.\n",
            opts->hostname,
            opts->ipstr,
            PACKET_SIZE - sizeof(struct icmphdr),
